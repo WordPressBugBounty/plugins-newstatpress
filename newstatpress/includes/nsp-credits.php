@@ -17,10 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Display the page with credits (contributors, translators, donors)
  * added by cHab
  */
-function nsp_display_credits_page() {
+function newstatpress_display_credits_page() {
 
 	global $pagenow;
-	global $credits_introduction;
 
 	$page = 'nsp-credits';
 
@@ -69,6 +68,7 @@ function nsp_display_credits_page() {
 	</table>
 
 	<?php
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( 'admin.php' === $pagenow && isset( $_GET['page'] ) && $page === $_GET['page'] ) {
 		?>
 

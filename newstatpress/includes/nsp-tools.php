@@ -17,87 +17,95 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
 /****** List of Functions available ******
  *
- * Nsp_display_tools_page()
- * nsp_remove_plugin_database()
- * nsp_export_now()
- * nsp_export()
+ * newstatpress_display_tools_page()
+ * newstatpress_remove_plugin_database()
+ * newstatpress_export_now()
+ * newstatpress_export()
  *****************************************/
 
 /**
  * Display the tools page using tabs
  */
-function nsp_display_tools_page() {
+function newstatpress_display_tools_page() {
 	global $pagenow;
-	$page            = 'nsp-tools';
+	$page = 'nsp-tools';
+
 	$tools_page_tabs = array(
 		'IP2nation' => __( 'IP2nation', 'newstatpress' ),
-		'update'    => __( 'Update', 'newstatpress' ),
-		'export'    => __( 'Export', 'newstatpress' ),
-		'optimize'  => __( 'Optimize', 'newstatpress' ),
-		'repair'    => __( 'Repair', 'newstatpress' ),
-		'remove'    => __( 'Remove', 'newstatpress' ),
-		'info'      => __( 'Informations', 'newstatpress' ),
+							 'update'    => __( 'Update', 'newstatpress' ),
+							 'export'    => __( 'Export', 'newstatpress' ),
+							 'optimize'  => __( 'Optimize', 'newstatpress' ),
+							 'repair'    => __( 'Repair', 'newstatpress' ),
+							 'remove'    => __( 'Remove', 'newstatpress' ),
+							 'info'      => __( 'Informations', 'newstatpress' ),
 	);
 
 	$default_tab = 'IP2nation';
 
-	print "<div class='wrap'><h2>" . esc_html__( 'Database Tools', 'newstatpress' ) . '</h2>';
+	echo "<div class='wrap'><h2>" . esc_html__( 'Database Tools', 'newstatpress' ) . '</h2>';
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading 'tab' to determine active admin subpage.
 	if ( isset( $_GET['tab'] ) ) {
-		nsp_display_tabs_navbar_for_menu_page( $tools_page_tabs, sanitize_text_field( wp_unslash( $_GET['tab'] ) ), $page );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$tab = sanitize_text_field( wp_unslash( $_GET['tab'] ) );
+		newstatpress_display_tabs_navbar_for_menu_page( $tools_page_tabs, $tab, $page );
 	} else {
-		nsp_display_tabs_navbar_for_menu_page( $tools_page_tabs, $default_tab, $page );
+		newstatpress_display_tabs_navbar_for_menu_page( $tools_page_tabs, $default_tab, $page );
 	}
 
-	if ( 'admin.php' === $pagenow && isset( $_GET['page'] ) && $page === $_GET['page'] ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading navigation parameters, not processing form data.
+	if ( 'admin.php' === $pagenow && isset( $_GET['page'] ) && $page === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) {
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading navigation parameter.
 		if ( isset( $_GET['tab'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$tab = sanitize_text_field( wp_unslash( $_GET['tab'] ) );
 		} else {
 			$tab = $default_tab;
 		}
 
 		switch ( $tab ) {
-
 			case 'IP2nation':
-				nsp_ip2nation();
+				newstatpress_ip2nation();
 				break;
 
 			case 'export':
-				nsp_export();
+				newstatpress_export();
 				break;
 
 			case 'update':
-				nsp_update();
+				newstatpress_update();
 				break;
 
 			case 'optimize':
-				nsp_optimize();
+				newstatpress_optimize();
 				break;
 
 			case 'repair':
-				nsp_repair();
+				newstatpress_repair();
 				break;
 
 			case 'remove':
-				nsp_remove_plugin_database();
+				newstatpress_remove_plugin_database();
 				break;
 
 			case 'info':
-				nsp_display_database_info();
+				newstatpress_display_database_info();
 				break;
 		}
 	}
 }
+
 
 /**
  * Get table size of index
  *
  * @param string $table table to search.
  */
-function nsp_index_table_size( $table ) {
+function newstatpress_index_table_size( $table ) {
 	global $wpdb;
 	// no needs prepare.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$res = $wpdb->get_results( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $table ) ); // db call ok; no-cache ok.
 	foreach ( $res as $fstatus ) {
 		$index_lenght = $fstatus->Index_length;  // phpcs:ignore -- not in valid snake_case format: it is a DB field!
@@ -109,7 +117,7 @@ function nsp_index_table_size( $table ) {
 /**
  * IP2nation form function
  *************************/
-function nsp_ip2nation() {
+function newstatpress_ip2nation() {
 	// Install or Remove if requested by user.
 	if ( isset( $_POST['installation'] ) && 'install' === $_POST['installation'] ) {
 
@@ -122,7 +130,7 @@ function nsp_ip2nation() {
 			die( 'Failed security check' );
 		}
 
-		$install_result = nsp_ip2nation_install();
+		$install_result = newstatpress_ip2nation_install();
 	} elseif ( isset( $_POST['installation'] ) && 'remove' === $_POST['installation'] ) {
 
 		check_admin_referer( 'nsp_tool', 'nsp_tool_post' );
@@ -134,7 +142,7 @@ function nsp_ip2nation() {
 			die( 'Failed security check' );
 		}
 
-		$install_result = nsp_ip2nation_remove();
+		$install_result = newstatpress_ip2nation_remove();
 	}
 
 	// Display message if present.
@@ -142,13 +150,13 @@ function nsp_ip2nation() {
 		print "<br /><div class='updated'><p>" . esc_html( $install_result ) . '</p></div>';
 	}
 
-	global $nsp_option_vars;
+	global $newstatpress_option_vars;
 	global $wpdb;
 
 	// Create IP2nation variable if not exists: value 'none' by default or date when installed.
-	$installed = get_option( $nsp_option_vars['ip2nation']['name'] );
+	$installed = get_option( $newstatpress_option_vars['ip2nation']['name'] );
 	if ( '' === $installed ) {
-		add_option( $nsp_option_vars['ip2nation']['name'], $nsp_option_vars['ip2nation']['value'], '', 'yes' );
+		add_option( $newstatpress_option_vars['ip2nation']['name'], $newstatpress_option_vars['ip2nation']['value'], '', 'yes' );
 	}
 
 	echo '<br /><br />';
@@ -156,15 +164,16 @@ function nsp_ip2nation() {
 	$date           = gmdate( 'd/m/Y', filemtime( $file_ip2nation ) );
 
 	$table_name = 'ip2nation';
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$val        = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ); // db call ok; no-cache ok.
 	if ( $val !== $table_name ) {
 		$value_remove = 'none';
 		$class_inst   = 'desactivated';
-		$installed    = $nsp_option_vars['ip2nation']['value'];
+		$installed    = $newstatpress_option_vars['ip2nation']['value'];
 	} else {
 		$value_remove = 'remove';
 		$class_inst   = '';
-		$installed    = get_option( $nsp_option_vars['ip2nation']['name'] );
+		$installed    = get_option( $newstatpress_option_vars['ip2nation']['name'] );
 		if ( 'none' === $installed ) {
 			$installed = esc_html__( 'unknow', 'newstatpress' );
 		}
@@ -239,20 +248,20 @@ function nsp_ip2nation() {
 /**
  * Install ip2nation table
  */
-function nsp_ip2nation_install() {
+function newstatpress_ip2nation_install() {
 	global $wpdb;
-	global $nsp_option_vars;
+	global $newstatpress_option_vars;
 
 	$file_ip2nation = WP_PLUGIN_DIR . '/' . dirname( plugin_basename( __FILE__ ) ) . '/includes/ip2nation.sql';
 
 	$sql       = WP_Filesystem_Direct::get_contents( $file_ip2nation );
 	$sql_array = explode( ';', $sql );
 	foreach ( $sql_array as $val ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( $wpdb->prepare( '%s', $val ) ); // db call ok; no-cache ok.
-
 	}
 	$date = gmdate( 'd/m/Y', filemtime( $file_ip2nation ) );
-	update_option( $nsp_option_vars['ip2nation']['name'], $date );
+	update_option( $newstatpress_option_vars['ip2nation']['name'], $date );
 	$install_status = __( 'Installation of IP2nation database was successful', 'newstatpress' );
 
 	return $install_status;
@@ -262,16 +271,18 @@ function nsp_ip2nation_install() {
 /**
  * Remove ip2nation table
  */
-function nsp_ip2nation_remove() {
+function newstatpress_ip2nation_remove() {
 
 	global $wpdb;
-	global $nsp_option_vars;
+	global $newstatpress_option_vars;
 
 	// no need prepare.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 	$wpdb->query( 'DROP TABLE IF EXISTS ip2nation;' ); // db call ok; no-cache ok.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 	$wpdb->query( 'DROP TABLE IF EXISTS ip2nationCountries;' ); // db call ok; no-cache ok.
 
-	update_option( $nsp_option_vars['ip2nation']['name'], $nsp_option_vars['ip2nation']['value'] );
+	update_option( $newstatpress_option_vars['ip2nation']['name'], $newstatpress_option_vars['ip2nation']['value'] );
 
 	$install_status = __( 'IP2nation database was remove successfully', 'newstatpress' );
 
@@ -282,7 +293,7 @@ function nsp_ip2nation_remove() {
 /**
  * Export form function
  */
-function nsp_export() {
+function newstatpress_export() {
 	$export_description  = esc_html__( 'The export tool allows you to save your statistics in a local file for a date interval defined by yourself.', 'newstatpress' );
 	$export_description .= '<br />';
 	$export_description .= esc_html__( 'You can define the filename and the file extension, and also the fields delimiter used to separate the data.', 'newstatpress' );
@@ -417,7 +428,7 @@ function nsp_export() {
 /**
  * Export the NewStatPress data
  */
-function nsp_export_now() {
+function newstatpress_export_now() {
 	global $wpdb;
 
 	check_admin_referer( 'nsp_tool', 'nsp_tool_post' );
@@ -497,6 +508,7 @@ function nsp_export_now() {
 	$i_to   = strtotime( $to );
 
 	// use prepare.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$qry = $wpdb->get_results(
 		$wpdb->prepare(
 			'SELECT *
@@ -524,7 +536,7 @@ function nsp_export_now() {
 /**
  * Generate HTML for remove menu in WordPress
  */
-function nsp_remove_plugin_database() {
+function newstatpress_remove_plugin_database() {
 
 	if ( isset( $_POST['removeit'] ) && 'yes' === $_POST['removeit'] ) {
 
@@ -539,6 +551,7 @@ function nsp_remove_plugin_database() {
 
 		global $wpdb;
 		$table_name = NSP_TABLENAME;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results    = $wpdb->query( $wpdb->prepare( 'DELETE FROM %s', $table_name ) ); // db call ok; no-cache ok.
 		print "<br /><div class='remove'><p>" . esc_html__( 'All data removed', 'newstatpress' ) . '!</p></div>';
 	} else {
@@ -576,7 +589,7 @@ function nsp_remove_plugin_database() {
  *
  * @return the number of days of -1 for all days
  */
-function nsp_duration_to_days() {
+function newstatpress_duration_to_days() {
 
 	// get the number of days for the update.
 	switch ( get_option( 'newstatpress_updateint' ) ) {
@@ -620,7 +633,7 @@ function nsp_duration_to_days() {
  * @param string $url the url to parse.
  * @return the extracted url
  *************************************/
-function nsp_extract_feed_req( $url ) {
+function newstatpress_extract_feed_req( $url ) {
 	list($null,$q) = explode( '?', $url );
 	if ( strpos( $q, '&' ) !== false ) {
 		list($res,$null) = explode( '&', $q );
@@ -633,7 +646,7 @@ function nsp_extract_feed_req( $url ) {
 /**
  * Update form function
  ***********************/
-function nsp_update() {
+function newstatpress_update() {
 	// database update if requested by user.
 	if ( 'yes' == isset( $_POST['update'] ) && sanitize_file_name( wp_unslash( $_POST['update'] ) ) ) {
 		check_admin_referer( 'nsp_tool', 'nsp_tool_post' );
@@ -645,7 +658,7 @@ function nsp_update() {
 			die( 'Failed security check' );
 		}
 
-		nsp_update_now();
+		newstatpress_update_now();
 		die;
 	}
 	?>
@@ -681,7 +694,7 @@ function nsp_update() {
 /**
  * Dispaly dattabase information
  */
-function nsp_display_database_info() {
+function newstatpress_display_database_info() {
 	global $wpdb;
 	global $newstatpress_dir;
 
@@ -690,7 +703,7 @@ function nsp_display_database_info() {
 	$wpdb->flush();     // flush for counting right the queries.
 	$start_time = microtime( true );
 
-	$days = nsp_duration_to_days();  // get the number of days for the update.
+	$days = newstatpress_duration_to_days();  // get the number of days for the update.
 
 	$to_date = gmdate( 'Ymd', current_time( 'timestamp' ) );
 
@@ -700,7 +713,7 @@ function nsp_display_database_info() {
 		$from_date = gmdate( 'Ymd', current_time( 'timestamp' ) - 86400 * $days );
 	}
 
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	$wpdb->show_errors();
 
@@ -726,8 +739,8 @@ function nsp_display_database_info() {
 			echo ' ' . esc_html( $table_name );
 			?>
 			</td>
-			<td><?php echo esc_html( nsp_table_size2( $wpdb->prefix . 'statpress' ) ); ?></td>
-			<td><?php echo esc_html( nsp_table_records( $wpdb->prefix . 'statpress' ) ); ?></td>
+			<td><?php echo esc_html( newstatpress_table_size2( $wpdb->prefix . 'statpress' ) ); ?></td>
+			<td><?php echo esc_html( newstatpress_table_records( $wpdb->prefix . 'statpress' ) ); ?></td>
 			</tr>
 			<tr>
 			<td>
@@ -736,7 +749,7 @@ function nsp_display_database_info() {
 			echo ' ' . esc_html( $table_name );
 			?>
 			</td>
-			<td><?php echo esc_html( nsp_index_table_size( $wpdb->prefix . 'statpress' ) ); ?></td>
+			<td><?php echo esc_html( newstatpress_index_table_size( $wpdb->prefix . 'statpress' ) ); ?></td>
 			<td></td>
 			</tr>
 		</tbody>
@@ -748,7 +761,7 @@ function nsp_display_database_info() {
 /**
  * Performes database update with new definitions
  */
-function nsp_update_now() {
+function newstatpress_update_now() {
 	global $wpdb;
 	global $newstatpress_dir;
 
@@ -757,7 +770,7 @@ function nsp_update_now() {
 	$wpdb->flush();     // flush for counting right the queries.
 	$start_time = microtime( true );
 
-	$days = nsp_duration_to_days();  // get the number of days for the update.
+	$days = newstatpress_duration_to_days();  // get the number of days for the update.
 
 	$to_date = gmdate( 'Ymd', current_time( 'timestamp' ) );
 
@@ -767,7 +780,7 @@ function nsp_update_now() {
 		$from_date = gmdate( 'Ymd', current_time( 'timestamp' ) - 86400 * $days );
 	}
 
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	$wpdb->show_errors();
 
@@ -781,11 +794,11 @@ function nsp_update_now() {
 	print "<tbody id='the-list'>";
 
 	// update table.
-	nsp_build_plugin_sql_table( 'update' );
+	newstatpress_build_plugin_sql_table( 'update' );
 
 	echo '<tr>
           <td>' . esc_html__( 'Structure', 'newstatpress' ) . ' ' . esc_html( $table_name ) . '</td>
-          <td>' . esc_html( nsp_table_size( $wpdb->prefix . 'statpress' ) ) . "</td>
+          <td>' . esc_html( newstatpress_table_size( $wpdb->prefix . 'statpress' ) ) . "</td>
           <td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td>
         </tr>";
 
@@ -795,349 +808,476 @@ function nsp_update_now() {
 
 	// Update Feed.
 	print '<tr><td>' . esc_html__( 'Feeds', 'newstatpress' ) . '</td>';
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-      SET feed=''
-      WHERE date BETWEEN %s AND %s
-      ",
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
 
-	// not standard.
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-      SET feed='RSS2'
-      WHERE
-        urlrequested LIKE %s AND
-        date BETWEEN %s AND %s
-      ",
-			'%%/feed/%%',
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-      SET feed='RSS2'
-      WHERE
-        urlrequested LIKE %s AND
-        date BETWEEN %s AND %s
-     ",
-			'%%wp-feed.php%%',
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$sql = sprintf(	"
+		UPDATE %s
+		SET feed = ''
+		WHERE date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
+
+	$sql = sprintf(	"
+		UPDATE %s
+		SET feed = 'RSS2'
+		WHERE
+		urlrequested LIKE %%s AND
+		date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		'%/feed/%',
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
+
+	$sql = sprintf("
+		UPDATE %s
+		SET feed = 'RSS2'
+		WHERE
+		urlrequested LIKE %%s AND
+		date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		'%wp-feed.php%',
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
 
 	// standard blog info urls.
-	$s = nsp_extract_feed_req( get_bloginfo( 'comments_atom_url' ) );
-	if ( '' !== $s ) {
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET feed='COMMENT'
-        WHERE
-          INSTR(urlrequested, %s)>0 AND
-          date BETWEEN %s AND %s
-       ",
-				$s,
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
-	}
-	$s = nsp_extract_feed_req( get_bloginfo( 'comments_rss2_url' ) );
-	if ( '' !== $s ) {
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET feed='COMMENT'
-        WHERE
-          INSTR(urlrequested, %s)>0 AND
-          date BETWEEN %s AND %s
-        ",
-				$s,
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
-	}
-	$s = nsp_extract_feed_req( get_bloginfo( 'atom_url' ) );
-	if ( '' !== $s ) {
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET feed='ATOM'
-        WHERE
-          INSTR(urlrequested, %s)>0 AND
-          date BETWEEN %s AND %s
-        ",
-				$s,
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
-	}
-	$s = nsp_extract_feed_req( get_bloginfo( 'rdf_url' ) );
-	if ( '' !== $s ) {
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET feed='RDF'
-        WHERE
-          INSTR(urlrequested, %s)>0 AND
-          date BETWEEN %s AND %s
-       ",
-				$s,
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
-	}
-	$s = nsp_extract_feed_req( get_bloginfo( 'rss_url' ) );
-	if ( '' !== $s ) {
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET feed='RSS'
-        WHERE
-          INSTR(urlrequested, %s)>0 AND
-          date BETWEEN %s AND %s
-        ",
-				$s,
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
-	}
-	$s = nsp_extract_feed_req( get_bloginfo( 'rss2_url' ) );
-	if ( '' !== $s ) {
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-         SET feed='RSS2'
-         WHERE
-         INSTR(urlrequested, %s)>0 AND
-          date BETWEEN %s AND %s
-        ",
-				$s,
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
-	}
+	$s = newstatpress_extract_feed_req( get_bloginfo( 'comments_atom_url' ) );
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-      SET feed = ''
-      WHERE
-        isnull(feed) AND
-        date BETWEEN %s AND %s
-      ",
+	if ( '' !== $s ) {
+		$sql = sprintf(	"
+			UPDATE %s
+			SET feed = 'COMMENT'
+			WHERE
+			INSTR(urlrequested, %%s) > 0 AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$s,
 			$from_date,
 			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
+	}
+
+
+
+	$s = newstatpress_extract_feed_req( get_bloginfo( 'comments_rss2_url' ) );
+	if ( '' !== $s ) {
+		$sql = sprintf(	"
+			UPDATE %s
+			SET feed = 'COMMENT'
+			WHERE
+			INSTR(urlrequested, %%s) > 0 AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$s,
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
+	}
+
+
+	$s = newstatpress_extract_feed_req( get_bloginfo( 'atom_url' ) );
+	if ( '' !== $s ) {
+		$sql = sprintf("
+			UPDATE %s
+			SET feed = 'ATOM'
+			WHERE
+			INSTR(urlrequested, %%s) > 0 AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$s,
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
+	}
+
+
+	$s = newstatpress_extract_feed_req( get_bloginfo( 'rdf_url' ) );
+	if ( '' !== $s ) {
+		$sql = sprintf(	"
+			UPDATE %s
+			SET feed = 'RDF'
+			WHERE
+			INSTR(urlrequested, %%s) > 0 AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$s,
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
+	}
+
+
+	$s = newstatpress_extract_feed_req( get_bloginfo( 'rss_url' ) );
+	if ( '' !== $s ) {
+		$sql = sprintf(	"
+			UPDATE %s
+			SET feed = 'RSS'
+			WHERE
+			INSTR(urlrequested, %%s) > 0 AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$s,
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
+	}
+
+
+	$s = newstatpress_extract_feed_req( get_bloginfo( 'rss2_url' ) );
+	if ( '' !== $s ) {
+		$sql = sprintf(	"
+			UPDATE %s
+			SET feed = 'RSS2'
+			WHERE
+			INSTR(urlrequested, %%s) > 0 AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$s,
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
+	}
+
+
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf(	"
+		UPDATE %s
+		SET feed = ''
+		WHERE
+		ISNULL(feed) AND
+		date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
 
 	print '<td></td>';
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
 	// Update OS.
 	print '<tr><td>' . esc_html__( 'OSes', 'newstatpress' ) . '</td>';
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-      SET os = ''
-      WHERE date BETWEEN %s AND %s
-      ",
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$sql = sprintf("
+		UPDATE %s
+		SET os = ''
+		WHERE date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
 
 	$lines = file( $newstatpress_dir . '/def/os.dat' );
 	foreach ( $lines as $line_num => $os ) {
-		list($nome_os,$id_os) = explode( '|', $os );
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET os = %s
-        WHERE
-          os='' AND
-          replace(agent,' ','') LIKE %s AND
-          date BETWEEN %s AND %s
-       ",
-				$nome_os,
-				'%' . $id_os . '%',
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
+		list( $nome_os, $id_os ) = explode( '|', $os );
+		$sql = sprintf(	"
+			UPDATE %s
+			SET os = %%s
+			WHERE
+			os = '' AND
+			REPLACE(agent, ' ', '') LIKE %%s AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$nome_os,
+			'%' . $id_os . '%',
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
 	}
+
 	print '<td></td>';
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
 	// Update Browser.
 	print '<tr><td>' . esc_html__( 'Browsers', 'newstatpress' ) . '</td>';
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-       SET browser = ''
-       WHERE date BETWEEN %s AND %s
-   ",
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$sql = sprintf(	"
+		UPDATE %s
+		SET browser = ''
+		WHERE date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
 
 	$lines = file( $newstatpress_dir . '/def/browser.dat' );
 	foreach ( $lines as $line_num => $browser ) {
-		list($nome,$id) = explode( '|', $browser );
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET browser = %s
-        WHERE
-          browser='' AND
-          replace(agent,' ','') LIKE %s AND
-          date BETWEEN %s AND %s
-       ",
-				$nome,
-				'%' . $id . '%',
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
+		list( $nome, $id ) = explode( '|', $browser );
+		$sql = sprintf("
+			UPDATE %s
+			SET browser = %%s
+			WHERE
+			browser = '' AND
+			REPLACE(agent, ' ', '') LIKE %%s AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$nome,
+			'%' . $id . '%',
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
 	}
+
 	print '<td></td>';
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
 	// Update Spider.
 	print '<tr><td>' . esc_html__( 'Spiders', 'newstatpress' ) . '</td>';
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-      SET spider = ''
-      WHERE date BETWEEN %s AND %s
-      ",
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$sql = sprintf(	"
+		UPDATE %s
+		SET spider = ''
+		WHERE date BETWEEN %%s AND %%s",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$from_date,
+		$to_date
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
 
 	$lines = file( $newstatpress_dir . '/def/spider.dat' );
+
 	foreach ( $lines as $line_num => $spider ) {
-		list($nome,$id) = explode( '|', $spider );
-		// use prepare.
-		// phpcs:ignore -- db call ok; no-cache ok.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE `$table_name`
-        SET spider = %s,os='',browser=''
-        WHERE
-          spider='' AND
-          replace(agent,' ','') LIKE %s AND
-          date BETWEEN %s AND %s
-        ",
-				$nome,
-				'%' . $id . '%',
-				$from_date,
-				$to_date
-			)
-		); // phpcs:ignore: unprepared SQL OK.
+		list( $nome, $id ) = explode( '|', $spider );
+		$sql = sprintf("
+			UPDATE %s
+			SET spider = %%s, os = '', browser = ''
+			WHERE
+			spider = '' AND
+			REPLACE(agent, ' ', '') LIKE %%s AND
+			date BETWEEN %%s AND %%s",
+			$table_literal
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql,
+			$nome,
+			'%' . $id . '%',
+			$from_date,
+			$to_date
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( $prepared );
 	}
+
 	print '<td></td>';
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
 	// Update Search engine.
 	print '<tr><td>' . esc_html__( 'Search engines', 'newstatpress' ) . ' </td>';
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE `$table_name`
-       SET searchengine = '', search=''
-       WHERE date BETWEEN %s AND %s
-      ",
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$qry = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT id, referrer
-       FROM `$table_name`
-       WHERE
-         length(referrer)!=0 AND
-         date BETWEEN %s AND %s
-       ",
-			$from_date,
-			$to_date
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$sql = sprintf(	"
+		UPDATE %s
+		SET searchengine = '', search = ''
+		WHERE date BETWEEN %%s AND %%s",
+		$table_literal
+	);
 
-	foreach ( $qry as $rk ) {
-		list($searchengine,$search_phrase) = explode( '|', nsp_get_se( $rk->referrer ) );
-		if ( '' !== $searchengine ) {
-			// use prepare.
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$wpdb->query(
-				$wpdb->prepare(
-					"UPDATE `$table_name`
-          SET searchengine = %s, search=%s 
-          WHERE
-            id= %d AND
-            date BETWEEN %s AND %s
-          ",
-					$searchengine,
-					addslashes( $search_phrase ),
-					$rk->id,
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$sql,
 					$from_date,
 					$to_date
-				)
-			); // phpcs:ignore: unprepared SQL OK.
+				);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$wpdb->query( $prepared );
+
+	$sql = sprintf(
+		"
+		SELECT id, referrer
+		FROM %s
+		WHERE
+		LENGTH(referrer) != 0 AND
+		date BETWEEN %%s AND %%s
+		",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$sql,
+					$from_date,
+					$to_date
+				);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$qry = $wpdb->get_results( $prepared );
+
+
+	foreach ( $qry as $rk ) {
+		list( $searchengine, $search_phrase ) = explode( '|', newstatpress_get_se( $rk->referrer ) );
+		if ( '' !== $searchengine ) {
+			$sql = sprintf(	"
+				UPDATE %s
+				SET searchengine = %%s, search = %%s
+				WHERE
+				id = %%d AND
+				date BETWEEN %%s AND %%s",
+				$table_literal
+			);
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$prepared = $wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$sql,
+				$searchengine,
+				addslashes( $search_phrase ),
+				$rk->id,
+				$from_date,
+				$to_date
+			);
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$wpdb->query( $prepared );
 		}
 	}
+
 	print '<td></td>';
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
@@ -1146,11 +1286,11 @@ function nsp_update_now() {
 
 	// Final statistics.
 	print '<tr><td>' . esc_html__( 'Final Structure', 'newstatpress' ) . ' ' . esc_html( $table_name ) . '</td>';
-	print '<td>' . esc_html( nsp_table_size( $wpdb->prefix . 'statpress' ) ) . '</td>'; // todo chab : to clean.
+	print '<td>' . esc_html( newstatpress_table_size( $wpdb->prefix . 'statpress' ) ) . '</td>'; // todo chab : to clean.
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
 	print '<tr><td>' . esc_html__( 'Final Index', 'newstatpress' ) . ' ' . esc_html( $table_name ) . '</td>';
-	print '<td>' . esc_html( nsp_index_table_size( $wpdb->prefix . 'statpress' ) ) . '</td>'; // todo chab : to clean.
+	print '<td>' . esc_html( newstatpress_index_table_size( $wpdb->prefix . 'statpress' ) ) . '</td>'; // todo chab : to clean.
 	print "<td><img class'update_img' src='" . esc_attr( $img_ok ) . "'></td></tr>";
 
 	print '<tr><td>' . esc_html__( 'Duration of the update', 'newstatpress' ) . '</td>';
@@ -1168,7 +1308,7 @@ function nsp_update_now() {
 /**
  * Optimize form function
  */
-function nsp_optimize() {
+function newstatpress_optimize() {
 
 	// database update if requested by user.
 	if ( isset( $_POST['optimize'] ) && 'yes' === $_POST['optimize'] ) {
@@ -1181,7 +1321,7 @@ function nsp_optimize() {
 			die( 'Failed security check' );
 		}
 
-		nsp_optimize_now();
+		newstatpress_optimize_now();
 		die;
 	}
 	?>
@@ -1211,7 +1351,7 @@ function nsp_optimize() {
 /**
  * Repair form function
  */
-function nsp_repair() {
+function newstatpress_repair() {
 	// database update if requested by user.
 	if ( isset( $_POST['repair'] ) && 'yes' === $_POST['repair'] ) {
 		check_admin_referer( 'nsp_tool', 'nsp_tool_post' );
@@ -1223,7 +1363,7 @@ function nsp_repair() {
 			die( 'Failed security check' );
 		}
 
-		nsp_repair_now();
+		newstatpress_repair_now();
 		die;
 	}
 	?>
@@ -1252,10 +1392,11 @@ function nsp_repair() {
 /**
  * Optimize the table
  */
-function nsp_optimize_now() {
+function newstatpress_optimize_now() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$wpdb->query( $wpdb->prepare( 'OPTIMIZE TABLE %s', $table_name ) ); // db call ok; no-cache ok.
 	print "<br /><div class='optimize'><p>" . esc_html__( 'Optimization finished', 'newstatpress' ) . '!</p></div>';
 }
@@ -1263,10 +1404,11 @@ function nsp_optimize_now() {
 /**
  * Repair the table
  */
-function nsp_repair_now() {
+function newstatpress_repair_now() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$wpdb->query( $wpdb->prepare( 'REPAIR TABLE %s', $table_name ) ); // db call ok; no-cache ok.
 	print "<br /><div class='repair'><p>" . esc_html__( 'Repair finished', 'newstatpress' ) . '!</p></div>';
 }

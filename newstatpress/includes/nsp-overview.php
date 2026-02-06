@@ -15,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Generate overwiew meta-box-order
  **********************************/
-function nsp_generate_overview_agents() {
+function newstatpress_generate_overview_agents() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
 	global $newstatpress_dir;
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -31,18 +31,25 @@ function nsp_generate_overview_agents() {
 	}
 
 	$querylimit = ( ( get_option( 'newstatpress_el_overview' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_overview' ) ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$useragents = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT agent,os,browser,spider
-       FROM `$table_name`
-       GROUP BY agent,os,browser,spider
-       ORDER BY id DESC LIMIT %d
-       ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf("
+		SELECT agent, os, browser, spider
+		FROM %s
+		GROUP BY agent, os, browser, spider
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$querylimit
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$useragents = $wpdb->get_results( $prepared );
 	?>
 	<table class='widefat nsp'>
 	<thead>
@@ -67,7 +74,7 @@ function nsp_generate_overview_agents() {
 			print '<tr><td>' . esc_html( $rk->agent ) . '</td>';
 		}
 		if ( '' !== $rk->os ) {
-			$val = nsp_get_os_img( $rk->os );
+			$val = newstatpress_get_os_img( $rk->os );
 			$img = str_replace( ' ', '_', strtolower( $val ) ) . '.png';
 			print "<td class='right nospace-r'><img class='img_os' src='" . esc_attr( $_newstatpress_url ) . 'images/os/' . esc_attr( $img ) . "'></td>";
 		} else {
@@ -79,7 +86,7 @@ function nsp_generate_overview_agents() {
 			print '<td>unknow</td>';
 		}
 		if ( '' !== $rk->browser ) {
-			$val = nsp_get_browser_img( $rk->browser );
+			$val = newstatpress_get_browser_img( $rk->browser );
 			$img = str_replace( ' ', '', strtolower( $val ) ) . '.png';
 			print "<td class='right nospace-r'><img class='img_browser' src='" . esc_attr( $_newstatpress_url ) . 'images/browsers/' . esc_attr( $img ) . "'></td>";
 		} else {
@@ -96,13 +103,13 @@ function nsp_generate_overview_agents() {
 /**
  * Generate overview lasthits
  */
-function nsp_generate_overview_lasthits() {
+function newstatpress_generate_overview_lasthits() {
 
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
 	global $newstatpress_dir;
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -113,18 +120,26 @@ function nsp_generate_overview_lasthits() {
 	}
 
 	$querylimit = ( ( get_option( 'newstatpress_el_overview' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_overview' ) ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$lasthits = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT *
-      FROM `$table_name`
-      WHERE (os<>'' OR feed<>'')
-      ORDER bY id DESC LIMIT %d
-      ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf("
+		SELECT *
+		FROM %s
+		WHERE (os<>'' OR feed<>'')
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$querylimit
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$lasthits = $wpdb->get_results( $prepared );
+
 	?>
 		<table class='widefat nsp'>
 		<thead>
@@ -145,15 +160,15 @@ function nsp_generate_overview_lasthits() {
 		<?php
 		foreach ( $lasthits as $fivesdraft ) {
 			print '<tr>
-                    <td>' . esc_html( nsp_hdate( $fivesdraft->date ) ) . '</td>
+                    <td>' . esc_html( newstatpress_hdate2( $fivesdraft->date ) ) . '</td>
                     <td>' . esc_html( $fivesdraft->time ) . '</td>
                     <td>' . esc_html( $fivesdraft->ip ) . '</td>
                     <td>' . esc_html( $fivesdraft->nation ) . '</td>
-                    <td>' . esc_html( nsp_abbreviate( nsp_decode_url( filter_var( $fivesdraft->urlrequested, FILTER_SANITIZE_URL ) ), 30 ) ) . '</td>
+                    <td>' . esc_html( newstatpress_abbreviate( newstatpress_decode_url( filter_var( $fivesdraft->urlrequested, FILTER_SANITIZE_URL ) ), 30 ) ) . '</td>
                     <td>' . esc_html( $fivesdraft->feed ) . '</td>';
 
 			if ( '' !== $fivesdraft->os ) {
-				$val = nsp_get_os_img( $fivesdraft->os );
+				$val = newstatpress_get_os_img( $fivesdraft->os );
 				$img = $_newstatpress_url . 'images/os/' . str_replace( ' ', '_', strtolower( $val ) ) . '.png';
 				print "<td class='right nospace-r'><img class='img_os' src='" . esc_attr( $img ) . "'></td>";
 			} else {
@@ -163,7 +178,7 @@ function nsp_generate_overview_lasthits() {
 			print "<td class='left nospace-l'> " . esc_html( $fivesdraft->os ) . '</td>';
 
 			if ( '' !== $fivesdraft->browser ) {
-				$val = nsp_get_browser_img( $fivesdraft->browser );
+				$val = newstatpress_get_browser_img( $fivesdraft->browser );
 				$img = $_newstatpress_url . 'images/browsers/' . str_replace( ' ', '_', strtolower( $val ) ) . '.png';
 				print "<td class='right nospace-r'><img class='img_browser' src='" . esc_attr( $img ) . "'></td>";
 			} else {
@@ -180,12 +195,12 @@ function nsp_generate_overview_lasthits() {
 /**
  * Generate overview lastsearchterms
  */
-function nsp_generate_overview_lastsearchterms() {
+function newstatpress_generate_overview_lastsearchterms() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
 	global $newstatpress_dir;
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -196,18 +211,26 @@ function nsp_generate_overview_lastsearchterms() {
 	}
 
 	$querylimit = ( ( get_option( 'newstatpress_el_overview' ) === '' ) ? 10 : get_option( 'newstatpress_el_overview' ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$lastsearchterms = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,referrer,urlrequested,search,searchengine
-       FROM `$table_name`
-       WHERE search<>''
-       ORDER BY id DESC LIMIT %d
-      ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf("
+		SELECT date, time, referrer, urlrequested, search, searchengine
+		FROM %s
+		WHERE search<>''
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$querylimit
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$lastsearchterms = $wpdb->get_results( $prepared );
+
 	?>
 	<table class='widefat nsp'>
 	<thead>
@@ -223,7 +246,7 @@ function nsp_generate_overview_lastsearchterms() {
 	<?php
 	foreach ( $lastsearchterms as $rk ) {
 		print '<tr>
-                <td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>
+                <td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>
                 <td><a href='" . esc_attr( $rk->referrer ) . "' target='_blank'>" . esc_html( $rk->search ) . '</a></td>
                 <td>' . esc_html( $rk->searchengine ) . "</td><td><a href='" . esc_attr( get_bloginfo( 'url' ) . $extra . filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ) . "' target='_blank'>" . esc_html__( 'page viewed', 'newstatpress' ) . "</a></td>
               </tr>\n";
@@ -237,12 +260,12 @@ function nsp_generate_overview_lastsearchterms() {
 /**
  * Generate overview lastreferrers
  */
-function nsp_generate_overview_lastreferrers() {
+function newstatpress_generate_overview_lastreferrers() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
 	global $newstatpress_dir;
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -253,22 +276,30 @@ function nsp_generate_overview_lastreferrers() {
 	}
 
 	$querylimit = ( ( get_option( 'newstatpress_el_overview' ) === '' ) ? 10 : get_option( 'newstatpress_el_overview' ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$lastreferrers = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,referrer,urlrequested
-      FROM `$table_name`
-      WHERE
-       ((referrer NOT LIKE %s) AND
-        (referrer <>'') AND
-        (searchengine='')
-       ) ORDER BY id DESC LIMIT %d
-      ",
-			get_option( 'home' ) . '%',
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf("
+		SELECT date, time, referrer, urlrequested
+		FROM %s
+		WHERE
+		(referrer NOT LIKE %%s) AND
+		(referrer <> '') AND
+		(searchengine = '')
+		ORDER BY id DESC
+		LIMIT %%d",
+	$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		get_option( 'home' ) . '%',
+		$querylimit
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$lastreferrers = $wpdb->get_results( $prepared );
+
 	?>
 	<table class='widefat nsp'>
 	<thead>
@@ -283,9 +314,9 @@ function nsp_generate_overview_lastreferrers() {
 	<?php
 	foreach ( $lastreferrers as $rk ) {
 		print '<tr>
-                <td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td>
+                <td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td>
                 <td>' . esc_html( $rk->time ) . "</td>
-                <td ><a class='urlicon' href='" . esc_attr( $rk->referrer ) . "' target='_blank'>" . esc_html( nsp_abbreviate( $rk->referrer, 80 ) ) . "</a></td>
+                <td ><a class='urlicon' href='" . esc_attr( $rk->referrer ) . "' target='_blank'>" . esc_html( newstatpress_abbreviate( $rk->referrer, 80 ) ) . "</a></td>
                 <td><a href='" . esc_attr( get_bloginfo( 'url' ) ) . filter_var( $extra . $rk->urlrequested, FILTER_SANITIZE_URL ) . "'  target='_blank'>" . esc_html__( 'page viewed', 'newstatpress' ) . "</a></td>
               </tr>\n";
 	}
@@ -298,12 +329,12 @@ function nsp_generate_overview_lastreferrers() {
 /**
  * Generate overview pages
  */
-function nsp_generate_overview_pages() {
+function newstatpress_generate_overview_pages() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
 	global $newstatpress_dir;
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -314,18 +345,26 @@ function nsp_generate_overview_pages() {
 	}
 
 	$querylimit = ( ( '' === get_option( 'newstatpress_el_overview' ) ) ? 10 : get_option( 'newstatpress_el_overview' ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$pages = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,urlrequested,os,browser,spider
-       FROM `$table_name`
-       WHERE (spider='' AND feed='')
-       ORDER BY id DESC LIMIT %d
-       ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf("
+		SELECT date, time, urlrequested, os, browser, spider
+		FROM %s
+		WHERE (spider='' AND feed='')
+		ORDER BY id DESC
+		LIMIT %%d",
+	$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$querylimit
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$pages = $wpdb->get_results( $prepared );
+
 	?>
 	<table class='widefat nsp'>
 	<thead>
@@ -342,9 +381,9 @@ function nsp_generate_overview_pages() {
 	<tbody id='the-list'>
 	<?php
 	foreach ( $pages as $rk ) {
-		print '<tr><td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>\n<td>" . esc_html( nsp_abbreviate( nsp_decode_url( filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ), 60 ) ) . '</td>';
+		print '<tr><td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>\n<td>" . esc_html( newstatpress_abbreviate( newstatpress_decode_url( filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ), 60 ) ) . '</td>';
 		if ( '' !== $rk->os ) {
-			$val = nsp_get_os_img( $rk->os );
+			$val = newstatpress_get_os_img( $rk->os );
 			$img = str_replace( ' ', '_', strtolower( $val ) ) . '.png';
 			print "<td><img class='img_os' src='" . esc_attr( $_newstatpress_url ) . 'images/os/' . esc_attr( $img ) . "'></td>";
 		} else {
@@ -352,7 +391,7 @@ function nsp_generate_overview_pages() {
 		}
 		print '<td>' . esc_html( $rk->os ) . '</td>';
 		if ( '' !== $rk->browser ) {
-			$val = nsp_get_browser_img( $rk->browser );
+			$val = newstatpress_get_browser_img( $rk->browser );
 			$img = str_replace( ' ', '', strtolower( $val ) ) . '.png';
 			print "<td><IMG class='img_browser' SRC='" . esc_attr( $_newstatpress_url ) . 'images/browsers/' . esc_attr( $img ) . "'></td>";
 		} else {
@@ -369,12 +408,12 @@ function nsp_generate_overview_pages() {
 /**
  * Generate overview spiders
  */
-function nsp_generate_overview_spiders() {
+function newstatpress_generate_overview_spiders() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
 	global $newstatpress_dir;
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -385,18 +424,26 @@ function nsp_generate_overview_spiders() {
 	}
 
 	$querylimit = ( ( get_option( 'newstatpress_el_overview' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_overview' ) ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$spiders = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,agent,os,browser,spider
-      FROM `$table_name`
-      WHERE (spider<>'')
-      ORDER BY id DESC LIMIT %d
-      ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
+	$sql = sprintf("
+		SELECT date, time, agent, os, browser, spider
+		FROM %s
+		WHERE (spider <> '')
+		ORDER BY id DESC
+		LIMIT %%d",
+	$table_literal
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		$querylimit
+	);
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$spiders = $wpdb->get_results( $prepared );
+
 	?>
 	<table class='widefat nsp'>
 	<thead>
@@ -412,7 +459,7 @@ function nsp_generate_overview_spiders() {
 	<?php
 	foreach ( $spiders as $rk ) {
 		print '<tr>
-                <td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td>
+                <td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td>
                 <td>' . esc_html( $rk->time ) . '</td>';
 		if ( '' !== $rk->spider ) {
 			$img = str_replace( ' ', '_', strtolower( $rk->spider ) ) . '.png';
@@ -433,7 +480,7 @@ function nsp_generate_overview_spiders() {
 /**
  * Show overwiew
  *****************/
-function nsp_new_stat_press_main() {
+function newstatpress_new_stat_press_main() {
 
 	?>
 
@@ -457,7 +504,7 @@ function nsp_new_stat_press_main() {
 					<?php
 					global $_newstatpress;
 					$api_key           = get_option( 'newstatpress_apikey' );
-					$_newstatpress_url = nsp_plugin_url();
+					$_newstatpress_url = newstatpress_plugin_url();
 					$url               = $_newstatpress_url . '/includes/api/external.php';
 
 					$msg_activated     = __( 'Loading... (Refresh page if no information is displayed).', 'newstatpress' );
@@ -465,7 +512,7 @@ function nsp_new_stat_press_main() {
 
 					get_option( 'newstatpress_externalapi' ) === 'checked' ? $message = $msg_activated : $message = $msg_not_activated;
 
-					wp_enqueue_script( 'wp_ajax_nsp_js_overview', plugins_url( './js/nsp_overview.js', __FILE__ ), array( 'jquery' ), $_newstatpress['version'], true );
+					wp_enqueue_script( 'wp_ajax_nsp_js_overview', plugins_url( './js/nsp_overview.js', __FILE__ ), array( 'jquery' ), NEWSTATPRESS_VERSION, true );
 					wp_localize_script(
 						'wp_ajax_nsp_js_overview',
 						'nsp_externalAjax_overview',
@@ -500,7 +547,7 @@ function nsp_new_stat_press_main() {
 /**
  *  NewStatpress main
  */
-function nsp_new_stat_press_main3() {
+function newstatpress_new_stat_press_main3() {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
@@ -509,10 +556,10 @@ function nsp_new_stat_press_main3() {
 	echo "<div class='wrap'><h2>" . esc_html__( 'Overview', 'newstatpress' ) . '</h2>';
 
 	$api_key           = get_option( 'newstatpress_apikey' );
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 	$url               = $_newstatpress_url . '/includes/api/external.php';
 
-	wp_enqueue_script( 'wp_ajax_nsp_js_overview', plugins_url( './js/nsp_overview.js', __FILE__ ), array( 'jquery' ), $_newstatpress['version'], true );
+	wp_enqueue_script( 'wp_ajax_nsp_js_overview', plugins_url( './js/nsp_overview.js', __FILE__ ), array( 'jquery' ), NEWSTATPRESS_VERSION, true );
 	wp_localize_script(
 		'wp_ajax_nsp_js_overview',
 		'nsp_externalAjax_overview',
@@ -524,7 +571,7 @@ function nsp_new_stat_press_main3() {
 	);
 	echo '<div id="nsp_result-overview"><img id="nsp_loader-overview" src="' . esc_attr( $_newstatpress_url ) . '/images/ajax-loader.gif"></div>';
 
-	$_newstatpress_url = nsp_plugin_url();
+	$_newstatpress_url = newstatpress_plugin_url();
 
 	// determine the structure to use for URL.
 	$permalink_structure = get_option( 'permalink_structure' );
@@ -535,87 +582,93 @@ function nsp_new_stat_press_main3() {
 	}
 
 	$querylimit = ( ( '' === get_option( 'newstatpress_el_overview' ) ) ? 10 : get_option( 'newstatpress_el_overview' ) );
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$lasthits = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT *
-    FROM `$table_name`
-    WHERE (os<>'' OR feed<>'')
-    ORDER bY id DESC LIMIT %d
-  ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK.
+	$table_literal = '`' . esc_sql( $table_name ) . '`';
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$lastsearchterms = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,referrer,urlrequested,search,searchengine
-       FROM `$table_name`
-       WHERE search<>''
-       ORDER BY id DESC LIMIT %d
-     ",
-			$querylimit
-		)
-	);// phpcs:ignore: unprepared SQL OK.
+	$sql = sprintf("
+		SELECT *
+		FROM %s
+		WHERE (os<>'' OR feed<>'')
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare( $sql, $querylimit );
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$lasthits = $wpdb->get_results( $prepared );
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$lastreferrers = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,referrer,urlrequested
-      FROM `$table_name`
-      WHERE
-       ((referrer NOT LIKE %s) AND
-       (referrer <>'') AND
-       (searchengine='')
-      ) ORDER BY id DESC LIMIT %d
-      ",
-			get_option( 'home' ) . '%',
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK
+	$sql = sprintf("
+		SELECT date, time, referrer, urlrequested, search, searchengine
+		FROM %s
+		WHERE search<>''
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare( $sql, $querylimit );
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$lastsearchterms = $wpdb->get_results( $prepared );
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$useragents = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT agent,os,browser,spider
-      FROM `$table_name`
-      GROUP BY agent,os,browser,spider
-      ORDER BY id DESC LIMIT %d
-     ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK
+	$sql = sprintf("
+		SELECT date, time, referrer, urlrequested
+		FROM %s
+		WHERE
+		(referrer NOT LIKE %%s) AND
+		(referrer <> '') AND
+		(searchengine = '')
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql,
+		get_option( 'home' ) . '%',
+		$querylimit
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$lastreferrers = $wpdb->get_results( $prepared );
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$pages = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,urlrequested,os,browser,spider
-       FROM `$table_name`
-       WHERE (spider='' AND feed='')
-       ORDER BY id DESC LIMIT %d
-      ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK
+	$sql = sprintf("
+		SELECT agent, os, browser, spider
+		FROM %s
+		GROUP BY agent, os, browser, spider
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare( $sql, $querylimit );
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$useragents = $wpdb->get_results( $prepared );
 
-	// use prepare.
-	// phpcs:ignore -- db call ok; no-cache ok.
-	$spiders = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT date,time,agent,os,browser,spider
-      FROM `$table_name`
-       WHERE (spider<>'')
-       ORDER BY id DESC LIMIT %d
-      ",
-			$querylimit
-		)
-	); // phpcs:ignore: unprepared SQL OK
+	$sql = sprintf("
+		SELECT date, time, urlrequested, os, browser, spider
+		FROM %s
+		WHERE (spider='' AND feed='')
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare( $sql, $querylimit );
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$pages = $wpdb->get_results( $prepared );
+
+	$sql = sprintf("
+		SELECT date, time, agent, os, browser, spider
+		FROM %s
+		WHERE (spider <> '')
+		ORDER BY id DESC
+		LIMIT %%d",
+		$table_literal
+	);
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$prepared = $wpdb->prepare( $sql, $querylimit );
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	$spiders = $wpdb->get_results( $prepared );
 	?>
 
 	<!-- Last hits table -->
@@ -640,15 +693,15 @@ function nsp_new_stat_press_main3() {
 		<?php
 		foreach ( $lasthits as $fivesdraft ) {
 			print '<tr>';
-			print '<td>' . esc_html( nsp_hdate( $fivesdraft->date ) ) . '</td>';
+			print '<td>' . esc_html( newstatpress_hdate2( $fivesdraft->date ) ) . '</td>';
 			print '<td>' . esc_html( $fivesdraft->time ) . '</td>';
 			print '<td>' . esc_html( $fivesdraft->ip ) . '</td>';
 			print '<td>' . esc_html( $fivesdraft->nation ) . '</td>';
-			print '<td>' . esc_html( nsp_abbreviate( nsp_decode_url( filter_var( $fivesdraft->urlrequested, FILTER_SANITIZE_URL ) ), 30 ) ) . '</td>';
+			print '<td>' . esc_html( newstatpress_abbreviate( newstatpress_decode_url( filter_var( $fivesdraft->urlrequested, FILTER_SANITIZE_URL ) ), 30 ) ) . '</td>';
 			print '<td>' . esc_html( $fivesdraft->feed ) . '</td>';
 
 			if ( '' !== $fivesdraft->os ) {
-				$val = nsp_get_browser_img( $fivesdraft->os );
+				$val = newstatpress_get_browser_img( $fivesdraft->os );
 				$img = $_newstatpress_url . '/images/os/' . str_replace( ' ', '_', strtolower( $val ) ) . '.png';
 				print "<td class='browser'><img class='img_browser' SRC='" . esc_attr( $img ) . "'></td>";
 			} else {
@@ -686,7 +739,7 @@ function nsp_new_stat_press_main3() {
 		<?php
 		foreach ( $lastsearchterms as $rk ) {
 			print '<tr>
-                  <td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>
+                  <td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>
                   <td><a href='" . esc_attr( $rk->referrer ) . "' target='_blank'>" . esc_html( $rk->search ) . '</a></td>
                   <td>' . esc_html( $rk->searchengine ) . "</td><td><a href='" . esc_attr( get_bloginfo( 'url' ) . $extra . filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ) . "' target='_blank'>" . esc_html__( 'page viewed', 'newstatpress' ) . "</a></td>
                 </tr>\n";
@@ -711,7 +764,7 @@ function nsp_new_stat_press_main3() {
 		<tbody id='the-list'>
 		<?php
 		foreach ( $lastreferrers as $rk ) {
-			print '<tr><td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td><td><a href='" . esc_attr( $rk->referrer ) . "' target='_blank'>" . esc_html( nsp_abbreviate( $rk->referrer, 80 ) ) . "</a></td><td><a href='" . esc_attr( get_bloginfo( 'url' ) . $extra . filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ) . "'  target='_blank'>" . esc_html__( 'page viewed', 'newstatpress' ) . "</a></td></tr>\n";
+			print '<tr><td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td><td><a href='" . esc_attr( $rk->referrer ) . "' target='_blank'>" . esc_html( newstatpress_abbreviate( $rk->referrer, 80 ) ) . "</a></td><td><a href='" . esc_attr( get_bloginfo( 'url' ) . $extra . filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ) . "'  target='_blank'>" . esc_html__( 'page viewed', 'newstatpress' ) . "</a></td></tr>\n";
 		}
 		?>
 		</tbody>
@@ -746,7 +799,7 @@ function nsp_new_stat_press_main3() {
 				print '<tr><td>' . esc_html( $rk->agent ) . '</td>';
 			}
 			if ( '' !== $rk->os ) {
-				$val = nsp_get_os_img( $rk->os );
+				$val = newstatpress_get_os_img( $rk->os );
 
 				$img = str_replace( ' ', '_', strtolower( $val ) ) . '.png';
 				print "<td><IMG class='img_browser' SRC='" . esc_attr( $_newstatpress_url ) . 'images/os/' . esc_attr( $img ) . "'> </td>";
@@ -759,7 +812,7 @@ function nsp_new_stat_press_main3() {
 				print '<td>unknow</td>';
 			}
 			if ( '' !== $rk->browser ) {
-				$val = nsp_get_browser_img( $rk->browser );
+				$val = newstatpress_get_browser_img( $rk->browser );
 				$img = str_replace( ' ', '', strtolower( $val ) ) . '.png';
 				print "<td><IMG class='img_browser' SRC='" . esc_attr( $_newstatpress_url ) . 'images/browsers/' . esc_attr( $img ) . "'></td>";
 			} else {
@@ -790,7 +843,7 @@ function nsp_new_stat_press_main3() {
 		<tbody id='the-list'>
 		<?php
 		foreach ( $pages as $rk ) {
-			print '<tr><td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>\n<td>" . esc_html( nsp_abbreviate( nsp_decode_url( filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ), 60 ) ) . '</td>';
+			print '<tr><td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . "</td>\n<td>" . esc_html( newstatpress_abbreviate( newstatpress_decode_url( filter_var( $rk->urlrequested, FILTER_SANITIZE_URL ) ), 60 ) ) . '</td>';
 			if ( '' !== $rk->os ) {
 				$img = str_replace( ' ', '_', strtolower( $rk->os ) ) . '.png';
 				print "<td><IMG class='img_browser' SRC='" . esc_attr( $_newstatpress_url ) . '/images/os/' . esc_attr( $img ) . "'> </td>";
@@ -818,7 +871,7 @@ function nsp_new_stat_press_main3() {
 	print "<tbody id='the-list'>";
 
 	foreach ( $spiders as $rk ) {
-		print '<tr><td>' . esc_html( nsp_hdate( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . '</td>';
+		print '<tr><td>' . esc_html( newstatpress_hdate2( $rk->date ) ) . '</td><td>' . esc_html( $rk->time ) . '</td>';
 		if ( '' !== $rk->spider ) {
 			$img = str_replace( ' ', '_', strtolower( $rk->spider ) ) . '.png';
 			print "<td><IMG class='img_os' SRC='" . esc_attr( $_newstatpress_url ) . '/images/spider/' . esc_attr( $img ) . "'> </td>";
@@ -830,10 +883,10 @@ function nsp_new_stat_press_main3() {
 	print '</table></div>';
 
 	print '<br />';
-	print '&nbsp;<i>StatPress table size: <b>' . esc_html( nsp_table_size( NSP_TABLENAME ) ) . '</b></i><br />';
+	print '&nbsp;<i>StatPress table size: <b>' . esc_html( newstatpress_table_size( NSP_TABLENAME ) ) . '</b></i><br />';
 	print '&nbsp;<i>StatPress current time: <b>' . esc_html( current_time( 'mysql' ) ) . '</b></i><br />';
-	print '&nbsp;<i>RSS2 url: <b>' . esc_html( get_bloginfo( 'rss2_url' ) ) . ' (' . esc_html( nsp_extract_feed_from_url( get_bloginfo( 'rss2_url' ) ) ) . ')</b></i><br />';
-	nsp_load_time();
+	print '&nbsp;<i>RSS2 url: <b>' . esc_html( get_bloginfo( 'rss2_url' ) ) . ' (' . esc_html( newstatpress_extract_feed_from_url( get_bloginfo( 'rss2_url' ) ) ) . ')</b></i><br />';
+	newstatpress_load_time();
 }
 
 /**
@@ -843,7 +896,7 @@ function nsp_new_stat_press_main3() {
  * @param int    $c the number of chars.
  * @return the abbreviate string
  ***********************************************/
-function nsp_abbreviate( $s, $c ) {
+function newstatpress_abbreviate( $s, $c ) {
 	// $s   = __( $s );
 	$res = '';
 	if ( strlen( $s ) > $c ) {

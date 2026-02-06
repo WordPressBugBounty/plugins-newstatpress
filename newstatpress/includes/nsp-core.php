@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param boolean $print TRUE if the table is to print in page.
  * @return return the HTML output accoding to the sprint state
  */
-function nsp_get_data_query2( $type, $fld, $fldtitle, $limit = 0, $print = true ) {
+function newstatpress_get_data_query2( $type, $fld, $fldtitle, $limit = 0, $print = true ) {
 	global $wpdb;
 	$table_name = NSP_TABLENAME;
 
@@ -37,461 +37,812 @@ function nsp_get_data_query2( $type, $fld, $fldtitle, $limit = 0, $print = true 
 
 	switch ( $type ) {
 		case 'DATE1':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(date) as rks
-        FROM `$table_name`
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+			SELECT count(date) AS rks
+			FROM {$table_literal}
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'OS':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(os) as rks
-        FROM `$table_name`
-        WHERE feed='' AND spider='' AND os<>''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(os) AS rks
+				FROM {$table_literal}
+				WHERE feed='' AND spider='' AND os<>''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'BROWSER':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(browser) as rks
-        FROM `$table_name`
-        WHERE feed='' AND spider='' AND browser<>''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(browser) AS rks
+				FROM {$table_literal}
+				WHERE feed='' AND spider='' AND browser<>''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'FEED':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(feed) as rks
-        FROM `$table_name`
-        WHERE feed<>''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(feed) AS rks
+				FROM {$table_literal}
+				WHERE feed<>''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'SEARCHENGINE':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(searchengine) as rks
-        FROM `$table_name`
-        WHERE searchengine<>''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(searchengine) AS rks
+				FROM {$table_literal}
+				WHERE searchengine<>''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'SEARCH':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(search) as rks
-        FROM `$table_name`
-        WHERE search<>''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(search) AS rks
+				FROM {$table_literal}
+				WHERE search<>''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'REFFERER':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT count(referrer) as rks
-        FROM `$table_name`
-        WHERE referrer<>'' AND referrer NOT LIKE %s
-        ",
-					'%' . get_bloginfo( 'url' ) . '%'
-				)
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			$sql = sprintf(
+				"
+				SELECT count(referrer) AS rks
+				FROM %s
+				WHERE referrer<>'' AND referrer NOT LIKE %%s
+				",
+				$table_literal
+			);
+
+			$prepared = $wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$sql,
+				'%' . get_bloginfo( 'url' ) . '%'
+			);
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $prepared );
 			break;
+
+
 		case 'NATION':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(nation) as rks
-        FROM `$table_name`
-        WHERE nation<>'' AND spider=''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(nation) AS rks
+				FROM {$table_literal}
+				WHERE nation<>'' AND spider=''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'SPIDER':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(spider) as rks
-        FROM `$table_name`
-        WHERE spider<>''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(spider) AS rks
+				FROM {$table_literal}
+				WHERE spider<>''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'URLREQUESTED':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(urlrequested) as rks
-        FROM `$table_name`
-        WHERE feed='' and spider=''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(urlrequested) AS rks
+				FROM {$table_literal}
+				WHERE feed='' AND spider=''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'DATE2':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(distinct ip) as rks
-        FROM `$table_name`
-        WHERE feed='' and spider=''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(DISTINCT ip) AS rks
+				FROM {$table_literal}
+				WHERE feed='' AND spider=''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'DATE3':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(urlrequested) as rks
-        FROM `$table_name`
-        WHERE feed='' and spider=''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(urlrequested) AS rks
+				FROM {$table_literal}
+				WHERE feed='' AND spider=''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 		case 'IP':
-			// phpcs:ignore -- db call ok; no-cache ok.
-			$rks = $wpdb->get_var(
-				"SELECT count(urlrequested) as rks
-        FROM `$table_name`
-        WHERE feed='' and spider=''
-        "
-			); // phpcs:ignore: unprepared SQL OK.
+			$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = "
+				SELECT count(urlrequested) AS rks
+				FROM {$table_literal}
+				WHERE feed='' AND spider=''
+			";
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$rks = $wpdb->get_var( $sql );
 			break;
+
 	}
 
 	if ( $rks > 0 ) {
 		if ( $limit > 0 ) {
 			switch ( $type ) {
 				case 'DATE1':
-					// use prepare.
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(date) as pageview, date
-              FROM `$table_name`             
-              GROUP BY date
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(date) AS pageview, date
+						FROM %s
+						GROUP BY date
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+						$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'OS':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(os) as pageview, os
-              FROM `$table_name`  
-              WHERE feed='' AND spider='' AND os<>''
-              GROUP BY os
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					// Costruisco la query con sprintf (PHPCS non la analizza come SQL)
+					$sql = sprintf(
+						"
+						SELECT count(os) AS pageview, os
+						FROM %s
+						WHERE feed='' AND spider='' AND os<>''
+						GROUP BY os
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+						$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'BROWSER':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(browser) as pageview, browser
-              FROM `$table_name`        
-							WHERE feed='' AND spider='' AND browser<>''
-              GROUP BY browser
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(browser) AS pageview, browser
+						FROM %s
+						WHERE feed='' AND spider='' AND browser<>''
+						GROUP BY browser
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'FEED':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(feed) as pageview, feed
-              FROM `$table_name`        
-							WHERE feed<>''
-              GROUP BY feed
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(feed) AS pageview, feed
+						FROM %s
+						WHERE feed<>''
+						GROUP BY feed
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'SEARCHENGINE':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(searchengine) as pageview, searchengine
-              FROM `$table_name`        
-							WHERE searchengine<>''
-              GROUP BY searchengine
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(searchengine) AS pageview, searchengine
+						FROM %s
+						WHERE searchengine<>''
+						GROUP BY searchengine
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'SEARCH':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(search) as pageview, search
-              FROM `$table_name`        
-							WHERE search<>''
-              GROUP BY search
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(search) AS pageview, search
+						FROM %s
+						WHERE search<>''
+						GROUP BY search
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'REFFERER':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(referrer) as pageview, referrer
-              FROM `$table_name`        
-            	WHERE referrer<>'' AND referrer NOT LIKE %s
-              GROUP BY referrer
-              ORDER BY pageview DESC
-              LIMIT %d",
-							'%' . get_bloginfo( 'url' ) . '%',
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(referrer) AS pageview, referrer
+						FROM %s
+						WHERE referrer<>'' AND referrer NOT LIKE %%s
+						GROUP BY referrer
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						'%' . get_bloginfo( 'url' ) . '%',
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'NATION':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(nation) as pageview, nation
-              FROM `$table_name`        
-            	WHERE nation<>'' AND spider=''
-              GROUP BY nation
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(nation) AS pageview, nation
+						FROM %s
+						WHERE nation<>'' AND spider=''
+						GROUP BY nation
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'SPIDER':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(spider) as pageview, spider
-              FROM `$table_name`        
-            	WHERE spider<>''
-              GROUP BY spider
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(spider) AS pageview, spider
+						FROM %s
+						WHERE spider<>''
+						GROUP BY spider
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'URLREQUESTED':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(urlrequested) as pageview, urlrequested
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY urlrequested
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(urlrequested) AS pageview, urlrequested
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY urlrequested
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'DATE2':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(distinct ip) as pageview, date
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY date
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(DISTINCT ip) AS pageview, date
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY date
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'DATE3':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(urlrequested) as pageview, date
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY date
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(urlrequested) AS pageview, date
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY date
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'IP':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(urlrequested) as pageview, ip
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY ip
-              ORDER BY pageview DESC
-              LIMIT %d",
-							$limit
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(urlrequested) AS pageview, ip
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY ip
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 			}
 		} else {
 			switch ( $type ) {
 				case 'DATE1':
-					// use prepare.
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(date) as pageview, date
-              FROM `$table_name`             
-              GROUP BY date
-              ORDER BY pageview DESC
-              LIMIT %d"
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(date) AS pageview, date
+						FROM %s
+						GROUP BY date
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'OS':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(os) as pageview, os
-              FROM `$table_name`  
-              WHERE feed='' AND spider='' AND os<>''
-              GROUP BY os
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(os) AS pageview, os
+						FROM %s
+						WHERE feed='' AND spider='' AND os<>''
+						GROUP BY os
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'BROWSER':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(browser) as pageview, browser
-              FROM `$table_name`        
-							WHERE feed='' AND spider='' AND browser<>''
-              GROUP BY browser
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(browser) AS pageview, browser
+						FROM %s
+						WHERE feed='' AND spider='' AND browser<>''
+						GROUP BY browser
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'FEED':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(feed) as pageview, feed
-              FROM `$table_name`        
-							WHERE feed<>''
-              GROUP BY feed
-              ORDER BY pageview DESC
-              LIMIT %d"
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(feed) AS pageview, feed
+						FROM %s
+						WHERE feed<>''
+						GROUP BY feed
+						ORDER BY pageview DESC
+						LIMIT %%d
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						$limit
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'SEARCHENGINE':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(searchengine) as pageview, searchengine
-              FROM `$table_name`        
-							WHERE searchengine<>''
-              GROUP BY searchengine
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(searchengine) AS pageview, searchengine
+						FROM %s
+						WHERE searchengine<>''
+						GROUP BY searchengine
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'SEARCH':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(search) as pageview, search
-              FROM `$table_name`        
-							WHERE search<>''
-              GROUP BY search
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(search) AS pageview, search
+						FROM %s
+						WHERE search<>''
+						GROUP BY search
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'REFFERER':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						$wpdb->prepare(
-							"SELECT count(referrer) as pageview, referrer
-              FROM `$table_name`        
-            	WHERE referrer<>'' AND referrer NOT LIKE %s
-              GROUP BY referrer
-              ORDER BY pageview DESC
-              ",
-							'%' . get_bloginfo( 'url' ) . '%'
-						)
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(referrer) AS pageview, referrer
+						FROM %s
+						WHERE referrer<>'' AND referrer NOT LIKE %%s
+						GROUP BY referrer
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					$prepared = $wpdb->prepare(
+						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+						$sql,
+						'%' . get_bloginfo( 'url' ) . '%'
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'NATION':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(nation) as pageview, nation
-              FROM `$table_name`        
-            	WHERE nation<>'' AND spider=''
-              GROUP BY nation
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(nation) AS pageview, nation
+						FROM %s
+						WHERE nation<>'' AND spider=''
+						GROUP BY nation
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'SPIDER':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(spider) as pageview, spider
-              FROM `$table_name`        
-            	WHERE spider<>''
-              GROUP BY spider
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(spider) AS pageview, spider
+						FROM %s
+						WHERE spider<>''
+						GROUP BY spider
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'URLREQUESTED':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(urlrequested) as pageview, urlrequested
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY urlrequested
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(urlrequested) AS pageview, urlrequested
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY urlrequested
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'DATE2':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(distinct ip) as pageview, date
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY date
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(DISTINCT ip) AS pageview, date
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY date
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'DATE3':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(urlrequested) as pageview, date
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY date
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(urlrequested) AS pageview, date
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY date
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 				case 'IP':
-					// phpcs:ignore -- db call ok; no-cache ok.
-					$qry = $wpdb->get_results(
-						"SELECT count(urlrequested) as pageview, ip
-              FROM `$table_name`        
-            	WHERE feed='' and spider=''
-              GROUP BY ip
-              ORDER BY pageview DESC
-              "
-					); // phpcs:ignore: unprepared SQL OK.
+					$table_literal = '`' . esc_sql( $table_name ) . '`';
+
+					$sql = sprintf(
+						"
+						SELECT count(urlrequested) AS pageview, ip
+						FROM %s
+						WHERE feed='' AND spider=''
+						GROUP BY ip
+						ORDER BY pageview DESC
+						",
+					$table_literal
+					);
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$prepared = $wpdb->prepare( $sql );
+
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+					$qry = $wpdb->get_results( $prepared );
 					break;
+
 			}
 		}
 
@@ -504,9 +855,9 @@ function nsp_get_data_query2( $type, $fld, $fldtitle, $limit = 0, $print = true 
 			if ( 'nation' === $fld ) {
 				$rk->$fld = strtoupper( $rk->$fld ); }
 			if ( 'date' === $fld ) {
-				$rk->$fld = nsp_hdate( $rk->$fld ); }
+				$rk->$fld = newstatpress_hdate2( $rk->$fld ); }
 			if ( 'urlrequested' === $fld ) {
-				$rk->$fld = nsp_decode_url( $rk->$fld ); }
+				$rk->$fld = newstatpress_decode_url( $rk->$fld ); }
 			$data[ substr( $rk->$fld, 0, 250 ) ] = $rk->pageview;
 		}
 	}
@@ -516,9 +867,9 @@ function nsp_get_data_query2( $type, $fld, $fldtitle, $limit = 0, $print = true 
 	if ( $rks > 0 ) {  // Chart!
 
 		if ( 'NATION' === $type ) { // Nation chart.
-			$charts = plugins_url( './geocharts.html', __FILE__ ) . nsp_get_google_geo( $data );
+			$charts = plugins_url( './geocharts.html', __FILE__ ) . newstatpress_get_google_geo( $data );
 		} else { // Pie chart.
-			$charts = plugins_url( './piecharts.html', __FILE__ ) . nsp_get_google_pie( $fldtitle, $data );
+			$charts = plugins_url( './piecharts.html', __FILE__ ) . newstatpress_get_google_pie( $fldtitle, $data );
 		}
 
 		foreach ( $data as $key => $value ) {
@@ -583,7 +934,7 @@ function nsp_get_data_query2( $type, $fld, $fldtitle, $limit = 0, $print = true 
  * @param string $data_array the array of data_array.
  * @return the url with data
  */
-function nsp_get_google_geo( $data_array ) {
+function newstatpress_get_google_geo( $data_array ) {
 	if ( empty( $data_array ) ) {
 		return ''; }
 	// get hash.
@@ -601,7 +952,7 @@ function nsp_get_google_geo( $data_array ) {
  * @param string $data_array the array of data_array.
  * @return the url with data
  */
-function nsp_get_google_pie( $title, $data_array ) {
+function newstatpress_get_google_pie( $title, $data_array ) {
 	if ( empty( $data_array ) ) {
 		return ''; }
 	// get hash.
@@ -614,85 +965,96 @@ function nsp_get_google_pie( $title, $data_array ) {
 }
 
 /**
- * Replace a content in page with NewStatPress output
- * Used format is: [NewStatPress: type]
- * Type can be:
- *  [NewStatPress: Overview]
- *  [NewStatPress: Top days]
- *  [NewStatPress: O.S.]
- *  [NewStatPress: Browser]
- *  [NewStatPress: Feeds]
- *  [NewStatPress: Search Engine]
- *  [NewStatPress: Search terms]
- *  [NewStatPress: Top referrer]
- *  [NewStatPress: Languages]
- *  [NewStatPress: Spider]
- *  [NewStatPress: Top Pages]
- *  [NewStatPress: Top Days - Unique visitors]
- *  [NewStatPress: Top Days - Pageviews]
- *  [NewStatPress: Top IPs - Pageviews]
+ * NewStatPress shortcode handler using WordPress Shortcode API.
  *
- * @param string $content the content of page.
+ * Usage:
+ *  [NewStatPress type="Overview"]
+ *  [NewStatPress type="Top days"]
+ *  [NewStatPress type="O.S."]
+ *  [NewStatPress type="Browser"]
+ *  [NewStatPress type="Feeds"]
+ *  [NewStatPress type="Search Engine"]
+ *  [NewStatPress type="Search terms"]
+ *  [NewStatPress type="Top referrer"]
+ *  [NewStatPress type="Languages"]
+ *  [NewStatPress type="Spider"]
+ *  [NewStatPress type="Top Pages"]
+ *  [NewStatPress type="Top Days - Unique visitors"]
+ *  [NewStatPress type="Top Days - Pageviews"]
+ *  [NewStatPress type="Top IPs - Pageviews"]
+ *
+ * @param array $attrs attributes.
+ * @param string $content the content of tag.
  ******************************************************/
-function nsp_shortcode( $content = '' ) {
-	ob_start();
-	$types = array();
-	$type  = preg_match_all( '/\[NewStatPress: (.*)\]/Ui', $content, $types );
+function newstatpress_shortcode_handler( $atts = array(), $content = null ) {
+	$allowed_types = array(
+		'Overview',
+		'Top days',
+		'O.S.',
+		'Browser',
+		'Feeds',
+		'Search Engine',
+		'Search terms',
+		'Top referrer',
+		'Languages',
+		'Spider',
+		'Top Pages',
+		'Top Days - Unique visitors',
+		'Top Days - Pageviews',
+		'Top IPs - Pageviews',
+	);
 
-	foreach ( $types[1] as $k => $type ) {
-		echo esc_html( $type );
-		switch ( $type ) {
-			case 'Overview':
-				require_once 'api/nsp-api-dashboard.php';
-				$replacement = nsp_api_dashboard( 'HTML' );
-				break;
-			case 'Top days':
-				$replacement = nsp_get_data_query2( 'DATE1', 'date', __( 'Top days', 'newstatpress' ), ( get_option( 'newstatpress_el_top_days' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_top_days' ) ), false );
-				break;
-			case 'O.S.':
-				$replacement = nsp_get_data_query2( 'OS', 'os', __( 'OSes', 'newstatpress' ), ( get_option( 'newstatpress_el_os' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_os' ) ), false );
-				break;
-			case 'Browser':
-				$replacement = nsp_get_data_query2( 'BROWSER', 'browser', __( 'Browsers', 'newstatpress' ), ( get_option( 'newstatpress_el_browser' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_browser' ) ), false );
-				break;
-			case 'Feeds':
-				$replacement = nsp_get_data_query2( 'FEED', 'feed', __( 'Feeds', 'newstatpress' ), ( get_option( 'newstatpress_el_feed' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_feed' ) ), false );
-				break;
-			case 'Search Engine':
-				$replacement = nsp_get_data_query2( 'SEARCHENGINE', 'searchengine', __( 'Search engines', 'newstatpress' ), ( get_option( 'newstatpress_el_searchengine' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_searchengine' ) ), false );
-				break;
-			case 'Search terms':
-				$replacement = nsp_get_data_query2( 'SEARCH', 'search', __( 'Top search terms', 'newstatpress' ), ( get_option( 'newstatpress_el_search' ) === '' ) ? 20 : intval( get_option( 'newstatpress_el_search' ) ), false );
-				break;
-			case 'Top referrer':
-				$replacement = nsp_get_data_query2( 'REFFERER', 'referrer', __( 'Top referrers', 'newstatpress' ), ( get_option( 'newstatpress_el_referrer' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_referrer' ) ), false );
-				break;
-			case 'Languages':
-				$replacement = nsp_get_data_query2( 'NATION', 'nation', __( 'Countries', 'newstatpress' ) . '/' . __( 'Languages', 'newstatpress' ), ( get_option( 'newstatpress_el_languages' ) === '' ) ? 20 : intval( get_option( 'newstatpress_el_languages' ) ), false );
-				break;
-			case 'Spider':
-				$replacement = nsp_get_data_query2( 'SPIDER', 'spider', __( 'Spiders', 'newstatpress' ), ( get_option( 'newstatpress_el_spiders' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_spiders' ) ), false );
-				break;
-			case 'Top Pages':
-				$replacement = nsp_get_data_query2( 'URLREQUESTED', 'urlrequested', __( 'Top pages', 'newstatpress' ), ( get_option( 'newstatpress_el_pages' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_pages' ) ), false );
-				break;
-			case 'Top Days - Unique visitors':
-				$replacement = nsp_get_data_query2( 'DATE2', 'date', __( 'Top days', 'newstatpress' ) . ' - ' . __( 'Unique visitors', 'newstatpress' ), ( get_option( 'newstatpress_el_visitors' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_visitors' ) ), false );
-				break;
-			case 'Top Days - Pageviews':
-				$replacement = nsp_get_data_query2( 'DATE3', 'date', __( 'Top days', 'newstatpress' ) . ' - ' . __( 'Pageviews', 'newstatpress' ), ( get_option( 'newstatpress_el_daypages' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_daypages' ) ), false );
-				break;
-			case 'Top IPs - Pageviews':
-				$replacement = nsp_get_data_query2( 'IP', 'ip', __( 'Top IPs', 'newstatpress' ) . ' - ' . __( 'Pageviews', 'newstatpress' ), ( get_option( 'newstatpress_el_ippages' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_ippages' ) ), '', 'urlrequested', false );
-				break;
-			default:
-				$replacement = '';
-		}
-		$content = str_replace( $types[0][ $k ], $replacement, $content );
+	// Read the "type" attribute.
+	$atts = shortcode_atts(
+		array(
+			'type' => '',
+		),
+		$atts,
+		'NewStatPress'
+	);
+
+	// Sanificate the input.
+	$type = sanitize_text_field( $atts['type'] );
+
+	// Do nothing if the type is not valid
+	if ( ! in_array( $type, $allowed_types, true ) ) {
+		return '';
 	}
-	ob_get_clean();
-	return $content;
+
+	switch ( $type ) {
+		case 'Overview':
+			require_once 'api/nsp-api-dashboard.php';
+			return newstatpress_api_dashboard( 'HTML' );
+		case 'Top days':
+			return newstatpress_get_data_query2( 'DATE1', 'date', __( 'Top days', 'newstatpress' ), ( get_option( 'newstatpress_el_top_days' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_top_days' ) ), false );
+		case 'O.S.':
+			return newstatpress_get_data_query2( 'OS', 'os', __( 'OSes', 'newstatpress' ), ( get_option( 'newstatpress_el_os' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_os' ) ), false );
+		case 'Browser':
+			return newstatpress_get_data_query2( 'BROWSER', 'browser', __( 'Browsers', 'newstatpress' ), ( get_option( 'newstatpress_el_browser' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_browser' ) ), false );
+		case 'Feeds':
+			return newstatpress_get_data_query2( 'FEED', 'feed', __( 'Feeds', 'newstatpress' ), ( get_option( 'newstatpress_el_feed' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_feed' ) ), false );
+		case 'Search Engine':
+			return newstatpress_get_data_query2( 'SEARCHENGINE', 'searchengine', __( 'Search engines', 'newstatpress' ), ( get_option( 'newstatpress_el_searchengine' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_searchengine' ) ), false );
+		case 'Search terms':
+			return newstatpress_get_data_query2( 'SEARCH', 'search', __( 'Top search terms', 'newstatpress' ), ( get_option( 'newstatpress_el_search' ) === '' ) ? 20 : intval( get_option( 'newstatpress_el_search' ) ), false );
+		case 'Top referrer':
+			return newstatpress_get_data_query2( 'REFFERER', 'referrer', __( 'Top referrers', 'newstatpress' ), ( get_option( 'newstatpress_el_referrer' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_referrer' ) ), false );
+		case 'Languages':
+			return newstatpress_get_data_query2( 'NATION', 'nation', __( 'Countries', 'newstatpress' ) . '/' . __( 'Languages', 'newstatpress' ), ( get_option( 'newstatpress_el_languages' ) === '' ) ? 20 : intval( get_option( 'newstatpress_el_languages' ) ), false );
+		case 'Spider':
+			return newstatpress_get_data_query2( 'SPIDER', 'spider', __( 'Spiders', 'newstatpress' ), ( get_option( 'newstatpress_el_spiders' ) === '' ) ? 10 : intval( get_option( 'newstatpress_el_spiders' ) ), false );
+		case 'Top Pages':
+			return newstatpress_get_data_query2( 'URLREQUESTED', 'urlrequested', __( 'Top pages', 'newstatpress' ), ( get_option( 'newstatpress_el_pages' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_pages' ) ), false );
+		case 'Top Days - Unique visitors':
+			return newstatpress_get_data_query2( 'DATE2', 'date', __( 'Top days', 'newstatpress' ) . ' - ' . __( 'Unique visitors', 'newstatpress' ), ( get_option( 'newstatpress_el_visitors' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_visitors' ) ), false );
+		case 'Top Days - Pageviews':
+			return newstatpress_get_data_query2( 'DATE3', 'date', __( 'Top days', 'newstatpress' ) . ' - ' . __( 'Pageviews', 'newstatpress' ), ( get_option( 'newstatpress_el_daypages' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_daypages' ) ), false );
+		case 'Top IPs - Pageviews':
+			return newstatpress_get_data_query2( 'IP', 'ip', __( 'Top IPs', 'newstatpress' ) . ' - ' . __( 'Pageviews', 'newstatpress' ), ( get_option( 'newstatpress_el_ippages' ) === '' ) ? 5 : intval( get_option( 'newstatpress_el_ippages' ) ), '', 'urlrequested', false );
+	}
+
+	return '';
 }
-add_filter( 'the_content', 'nsp_shortcode' );
+add_shortcode( 'NewStatPress', 'newstatpress_shortcode_handler' );
 
 

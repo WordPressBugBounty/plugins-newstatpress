@@ -21,22 +21,23 @@ require 'nsp-api-overview.php';
 /**
  * Body function of external API Nonce
  */
-function nsp_external_api_ajax_n() {
+function newstatpress_external_api_ajax_n() {
 	// check to see if the submitted nonce matches with the
 	// generated nonce we created earlier.
 	if ( ! ( isset( $_POST['postCommentNonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['postCommentNonce'] ) ), 'newstatpress-nsp_external-nonce' ) ) ) {
 		die( 'Busted!' );
 	}
 
-	nsp_external_api_ajax();
+	newstatpress_external_api_ajax();
 }
 
 /**
  * Body function of external API
  */
-function nsp_external_api_ajax() {
+function newstatpress_external_api_ajax() {
 	global $_newstatpress;
 	global $wpdb;
+
 	header( 'HTTP/1.0 200 Ok' );
 	if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
 		header( 'HTTP/1.0 403 Forbidden' );
@@ -53,20 +54,31 @@ function nsp_external_api_ajax() {
 	$api_key = md5( gmdate( 'm-d-y H i' ) . $api_key );
 
 	// get the parameter from URL.
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- external API, access controlled via API key, not nonce.
 	if ( isset( $_REQUEST['VAR'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$var = substr( preg_replace( '/[^a-z]+/', '', sanitize_text_field( wp_unslash( $_REQUEST['VAR'] ) ) ), 0, 9 );
 	}
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- external API, access controlled via API key, not nonce.
 	if ( isset( $_REQUEST['KEY'] ) ) {
-		$key = preg_replace( '/[^a-z0-9]+/', '', sanitize_text_field( wp_unslash( $_REQUEST['KEY'] ) ) );     // key readed is md5(date('m-d-y H i').'Key').
+		// key read is md5(date('m-d-y H i').'Key').
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$key = preg_replace( '/[^a-z0-9]+/', '', sanitize_text_field( wp_unslash( $_REQUEST['KEY'] ) ) );
 	}
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- external API, access controlled via API key, not nonce.
 	if ( isset( $_REQUEST['PAR'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$par = intval( $_REQUEST['PAR'] ); // can be empty.
 	}
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- external API, access controlled via API key, not nonce.
 	if ( isset( $_REQUEST['TYP'] ) ) {
-		$typ = substr( preg_replace( '/[^A-Z]+/', '', sanitize_text_field( wp_unslash( $_REQUEST['TYP'] ) ) ), 0, 4 ); // can be empty.
+		// can be empty.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$typ = substr( preg_replace( '/[^A-Z]+/', '', sanitize_text_field( wp_unslash( $_REQUEST['TYP'] ) ) ), 0, 4 );
 	}
 
 	if ( null === $typ ) {
@@ -96,16 +108,16 @@ function nsp_external_api_ajax() {
 
 	switch ( $var ) {
 		case 'version':
-			$result = nsp_api_version( $typ );
+			$result = newstatpress_api_version( $typ );
 			break;
 		case 'wpversion':
-			$result = nsp_api_wp_version( $typ );
+			$result = newstatpress_api_wp_version( $typ );
 			break;
 		case 'dashboard':
-			$result = nsp_api_dashboard( $typ );
+			$result = newstatpress_api_dashboard( $typ );
 			break;
 		case 'overview':
-			$result = nsp_api_overview( $typ, $par );
+			$result = newstatpress_api_overview( $typ, $par );
 			break;
 		default:
 			header( 'HTTP/1.0 403 Forbidden' );

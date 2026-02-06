@@ -1,12 +1,20 @@
-=== Plugin Name ===
+=== NewStatPress ===
 Contributors: ice00, lechab
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=F5S5PF4QBWU7E
-Tags: stats,statistics,widget,admin,sidebar,visits,visitors,pageview,user,agent,referrer,post,posts,spy,statistiche,ip2nation,country
+Tags: statistics, analytics, visits, dashboard, tracking
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 3.5
-Tested up to: 6.0
-Stable Tag: 1.4.3
+Tested up to: 6.9
+Stable Tag: 1.4.4
 
 NewStatPress (Statpress plugin fork) is a real-time plugin to manage the visits' statistics about your blog  (without external web analytics).
+
+== License ==
+GPLv2 or later
+
+== License URI ==
+https://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
@@ -157,6 +165,13 @@ Check at http://newstatpress.altervista.org for more details
 6.
 
 == Changelog ==
+
+= 1.4.4 =
+*Released date: 2026-01-06*
+
+* Fix vulnerability Authenticated (Contributor+) Stored Cross-Site Scripting
+* Fix php8 specific error
+* Rewrote all to be aligned with check plugin (so check the changes on syntax for variables)
 
 = 1.4.3 =
 *Released date: 2022-06-26*
